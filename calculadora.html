@@ -33,8 +33,8 @@
     .res-main { font-size: 2rem; font-weight: 800; color: var(--green); margin-bottom: 12px; }
     .breakdown { list-style: none; border-top: 1px solid var(--border); padding-top: 12px; font-size: 0.9rem; line-height: 1.6; }
     .breakdown li { display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .sugerencia-box { margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.9rem; line-height: 1.5; }
-    .cross-sell { margin-top: 14px; padding: 12px; background: rgba(37, 99, 235, 0.15); border-left: 4px solid var(--accent); border-radius: 6px; font-size: 0.85rem; line-height: 1.4; }
+    .sugerencia-box { margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.9rem; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); }
+    .cross-sell { margin-top: 14px; padding: 12px; background: rgba(37, 99, 235, 0.15); border-left: 4px solid var(--accent); border-radius: 6px; font-size: 0.85rem; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -53,7 +53,7 @@
 
   <div class="form-group">
     <label>O Área Total Directa (m²):</label>
-    <input type="number" id="areaDirecta" placeholder="Ej. 45" step="0.1" inputmode="decimal">
+    <input type="number" id="areaDirecta" placeholder="Ej. 120" step="0.1" inputmode="decimal">
   </div>
 
   <div class="form-group">
@@ -76,7 +76,7 @@
   <button onclick="calcular()">Calcular Cubetaje</button>
 
   <div class="results" id="resBox">
-    <div class="res-header">Cálculo Estimado</div>
+    <div class="res-header">Cálculo Estimado de Pintura</div>
     <div class="res-main" id="totalLitros">0 Litros</div>
     
     <ul class="breakdown">
@@ -84,14 +84,14 @@
     </ul>
 
     <div class="sugerencia-box">
-      <strong style="color:var(--accent);">Sugerencia de compra:</strong>
+      <strong style="color:var(--accent);">Sugerencia de compra (Pintura):</strong>
       <div id="resPresentacion" style="margin-top:6px;"></div>
     </div>
 
     <div class="cross-sell">
-      💡 <strong>Venta Cruzada Recomendada:</strong><br>
-      Aplica 1 mano de Sellador Meridian antes de pintar.<br>
-      Necesitas aprox. <strong id="litrosSellador">0 L</strong> para asegurar adherencia y rendimiento.
+      💡 <strong>Venta Cruzada Recomendada (Sellador):</strong><br>
+      Aplica 1 mano de Sellador Meridian (rendimiento 30 m²/L diluido).<br>
+      Necesitas: <strong id="litrosSellador">0 L</strong> <span id="presSellador"></span>.
     </div>
   </div>
 </div>
@@ -114,10 +114,12 @@ function calcular() {
   const tipo = document.getElementById('tipoSuperficie').value;
   const manos = parseInt(document.getElementById('manos').value);
 
+  // Rendimiento pintura
   const rendimientoBase = (tipo === 'liso') ? 9 : 6;
   const litrosTotales = (area * manos) / rendimientoBase;
   const litrosRedondeados = Math.ceil(litrosTotales * 10) / 10;
 
+  // Desglose pintura comercial
   let rest = Math.ceil(litrosTotales);
   const cubetas = Math.floor(rest / 19);
   rest %= 19;
@@ -130,12 +132,26 @@ function calcular() {
   if (galones > 0) presentacionTexto.push(`• <strong>${galones}</strong> Galón(es) de 4L`);
   if (botes > 0) presentacionTexto.push(`• <strong>${botes}</strong> Bote(s) de 1L`);
 
-  const litrosSelladorReq = Math.ceil(area / 9);
+  // Rendimiento Sellador Meridian diluido (1 L = 30 m²)
+  const litrosSelladorReq = Math.ceil(area / 30);
+  let presSelladorTexto = "";
+
+  if (litrosSelladorReq >= 19) {
+    const cubSell = Math.floor(litrosSelladorReq / 19);
+    const remSell = litrosSelladorReq % 19;
+    presSelladorTexto = `(${cubSell} Cubeta 19L${remSell > 0 ? ' + complemento' : ''})`;
+  } else if (litrosSelladorReq >= 4) {
+    const galSell = Math.ceil(litrosSelladorReq / 4);
+    presSelladorTexto = `(${galSell} Galón de 4L)`;
+  } else {
+    presSelladorTexto = `(${litrosSelladorReq} Bote de 1L)`;
+  }
 
   document.getElementById('resArea').innerText = `${area.toFixed(1)} m²`;
   document.getElementById('totalLitros').innerText = `${litrosRedondeados} Litros`;
   document.getElementById('resPresentacion').innerHTML = presentacionTexto.join("<br>") || "• 1 Bote de 1L";
   document.getElementById('litrosSellador').innerText = `${litrosSelladorReq} L`;
+  document.getElementById('presSellador').innerText = presSelladorTexto;
 
   document.getElementById('resBox').classList.add('active');
 }
