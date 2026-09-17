@@ -57,17 +57,18 @@
   </div>
 
   <div class="form-group">
-    <label>Tipo de Muro / Estado:</label>
-    <select id="tipoSuperficie">
-      <option value="liso">Lisa / Repintado en buen estado (8-10 m²/L)</option>
-      <option value="poroso">Porosa / Rugosa / Sin pintar (5-7 m²/L)</option>
+    <label>Línea / Calidad de Pintura:</label>
+    <select id="lineaPintura">
+      <option value="estandar" selected>Meridian Estándar (133-152 m²/cubeta a 2 manos)</option>
+      <option value="premier">Meridian Premier (152-171 m²/cubeta a 2 manos)</option>
+      <option value="porosa">Superficie Porosa / Sin Pintar (100-120 m²/cubeta a 2 manos)</option>
     </select>
   </div>
 
   <div class="form-group">
     <label>Número de manos:</label>
     <select id="manos">
-      <option value="2" selected>2 Manos (Recomendado estándar)</option>
+      <option value="2" selected>2 Manos (Estándar de etiqueta)</option>
       <option value="1">1 Mano (Retoque ligero)</option>
       <option value="3">3 Manos (Cambio drástico de tono)</option>
     </select>
@@ -111,15 +112,20 @@ function calcular() {
     return;
   }
 
-  const tipo = document.getElementById('tipoSuperficie').value;
+  const linea = document.getElementById('lineaPintura').value;
   const manos = parseInt(document.getElementById('manos').value);
 
-  // Rendimiento pintura
-  const rendimientoBase = (tipo === 'liso') ? 9 : 6;
-  const litrosTotales = (area * manos) / rendimientoBase;
+  // Rendimiento base en m²/L a 2 MANOS (según etiqueta)
+  let rend2Manos = 7.5; // Estándar (~142.5 m² / 19L)
+  if (linea === 'premier') rend2Manos = 8.5; // Premier (~161.5 m² / 19L)
+  if (linea === 'porosa') rend2Manos = 5.8; // Porosa (~110 m² / 19L)
+
+  // Ajuste según número de manos seleccionadas
+  const factorManos = manos / 2;
+  const litrosTotales = (area / rend2Manos) * factorManos;
   const litrosRedondeados = Math.ceil(litrosTotales * 10) / 10;
 
-  // Desglose pintura comercial
+  // Desglose de compra óptimo
   let rest = Math.ceil(litrosTotales);
   const cubetas = Math.floor(rest / 19);
   rest %= 19;
@@ -132,7 +138,7 @@ function calcular() {
   if (galones > 0) presentacionTexto.push(`• <strong>${galones}</strong> Galón(es) de 4L`);
   if (botes > 0) presentacionTexto.push(`• <strong>${botes}</strong> Bote(s) de 1L`);
 
-  // Rendimiento Sellador Meridian diluido (1 L = 30 m²)
+  // Sellador Meridian (1 L = 30 m² diluido)
   const litrosSelladorReq = Math.ceil(area / 30);
   let presSelladorTexto = "";
 
