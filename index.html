@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Color Meridian | Bi-Tono</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 12px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    header { text-align: center; padding: 4px 0; }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px; }
+    p.sub { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    
+    .viewport {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #1e293b;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+    svg { width: 100%; height: auto; display: block; }
+    
+    .controls {
+      background-color: #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #38bdf8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .val-badge {
+      background: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-family: monospace;
+      color: #38bdf8;
+    }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .swatch {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .swatch.active { border-color: #38bdf8; transform: scale(1.08); }
+    
+    .color-picker-row { display: flex; gap: 10px; align-items: center; }
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: 2px solid #475569; border-radius: 8px; }
+    
+    select, input[type="range"] {
+      width: 100%;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    input[type="range"] { padding: 0; accent-color: #38bdf8; height: 6px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Simulador de Color Meridian</h1>
+    <p class="sub">Combinación y Contraste de Muros en Tiempo Real</p>
+  </header>
+
+  <div class="viewport">
+    <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="wallBaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+          <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+        </linearGradient>
+
+        <linearGradient id="cornerShadow" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#000000" stop-opacity="0.3" />
+          <stop offset="15%" stop-color="#000000" stop-opacity="0.0" />
+          <stop offset="85%" stop-color="#000000" stop-opacity="0.0" />
+          <stop offset="100%" stop-color="#000000" stop-opacity="0.25" />
+        </linearGradient>
+
+        <linearGradient id="leftWallShadow" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#000000" stop-opacity="0.1" />
+          <stop offset="100%" stop-color="#000000" stop-opacity="0.35" />
+        </linearGradient>
+      </defs>
+
+      <!-- MURO LATERAL IZQUIERDO (ACENTO) -->
+      <polygon points="0,0 240,40 240,390 0,440" fill="url(#wallBaseGrad)" />
+      <polygon id="wall-accent-color" points="0,0 240,40 240,390 0,440" fill="#3288A2" style="mix-blend-mode: multiply; opacity: 0.85;" />
+      <polygon points="0,0 240,40 240,390 0,440" fill="url(#leftWallShadow)" style="mix-blend-mode: multiply; pointer-events: none;" />
+
+      <!-- MURO FRONTAL (PRINCIPAL) -->
+      <polygon points="240,40 800,0 800,370 240,390" fill="url(#wallBaseGrad)" />
+      <polygon id="wall-main-color" points="240,40 800,0 800,370 240,390" fill="#A6D238" style="mix-blend-mode: multiply; opacity: 0.85;" />
+      <polygon points="240,40 800,0 800,370 240,390" fill="url(#cornerShadow)" style="mix-blend-mode: multiply; pointer-events: none;" />
+
+      <!-- ESTRUCTURA Y MUEBLES -->
+      <line x1="240" y1="40" x2="240" y2="390" stroke="#000000" stroke-width="2" opacity="0.15" />
+      <polygon points="0,440 240,390 800,370 800,500 0,500" fill="#5c2c16" />
+      <polygon points="0,440 240,390 800,370 800,500 0,500" fill="#38180a" opacity="0.35" />
+      <polygon points="0,440 240,390 240,383 0,432" fill="#e2e8f0" />
+      <polygon points="240,390 800,370 800,363 240,383" fill="#cbd5e1" />
+
+      <polygon points="320,80 500,60 500,240 320,250" fill="#e0f2fe" stroke="#ffffff" stroke-width="7" />
+      <line x1="410" y1="70" x2="410" y2="245" stroke="#ffffff" stroke-width="5" />
+      <line x1="320" y1="165" x2="500" y2="150" stroke="#ffffff" stroke-width="5" />
+
+      <polygon points="40,110 180,130 180,240 40,230" fill="#f8fafc" stroke="#1e293b" stroke-width="5" />
+      <circle cx="110" cy="165" r="18" fill="#fbbf24" />
+
+      <ellipse cx="450" cy="410" rx="190" ry="14" fill="#000000" opacity="0.35" />
+      <rect x="290" y="280" width="340" height="100" rx="14" fill="#334155" />
+      <rect x="310" y="260" width="300" height="60" rx="10" fill="#475569" />
+      <rect x="305" y="320" width="150" height="50" rx="6" fill="#64748b" stroke="#334155" stroke-width="2" />
+      <rect x="460" y="320" width="150" height="50" rx="6" fill="#64748b" stroke="#334155" stroke-width="2" />
+      <rect x="310" y="380" width="10" height="20" fill="#1e293b" />
+      <rect x="580" y="380" width="10" height="20" fill="#1e293b" />
+
+      <polygon points="50,420 90,420 82,370 58,370" fill="#d97706" />
+      <path d="M70,370 Q40,320 20,330 Q50,350 70,370" fill="#15803d" />
+      <path d="M70,370 Q60,290 70,280 Q80,310 70,370" fill="#22c55e" />
+      <path d="M70,370 Q100,310 120,325 Q90,350 70,370" fill="#16a34a" />
+    </svg>
+  </div>
+
+  <div class="controls">
+    <!-- MURO PRINCIPAL -->
+    <div class="control-group">
+      <div class="section-title">
+        <span>1. Muro Principal (Frontal)</span>
+        <span class="val-badge" id="mainHex">#A6D238</span>
+      </div>
+      <div class="color-picker-row">
+        <input type="color" id="mainPicker" value="#A6D238">
+      </div>
+      <div class="swatches" id="mainSwatches">
+        <button class="swatch active" style="background:#A6D238" data-color="#A6D238"></button>
+        <button class="swatch" style="background:#F27A1A" data-color="#F27A1A"></button>
+        <button class="swatch" style="background:#D4A359" data-color="#D4A359"></button>
+        <button class="swatch" style="background:#E2E8F0" data-color="#E2E8F0"></button>
+        <button class="swatch" style="background:#7D7C7A" data-color="#7D7C7A"></button>
+      </div>
+    </div>
+
+    <!-- MURO DE ACENTO -->
+    <div class="control-group">
+      <div class="section-title">
+        <span>2. Muro de Acento (Lateral)</span>
+        <span class="val-badge" id="accentHex">#3288A2</span>
+      </div>
+      <div class="color-picker-row">
+        <input type="color" id="accentPicker" value="#3288A2">
+      </div>
+      <div class="swatches" id="accentSwatches">
+        <button class="swatch active" style="background:#3288A2" data-color="#3288A2"></button>
+        <button class="swatch" style="background:#50A7C2" data-color="#50A7C2"></button>
+        <button class="swatch" style="background:#6B3E84" data-color="#6B3E84"></button>
+        <button class="swatch" style="background:#C86D51" data-color="#C86D51"></button>
+        <button class="swatch" style="background:#1E293B" data-color="#1E293B"></button>
+      </div>
+    </div>
+
+    <!-- ILUMINACIÓN -->
+    <div class="control-group">
+      <div class="section-title"><span>Ajustes de Iluminación</span></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div>
+          <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px;">Modo Fusión</label>
+          <select id="blendSelect">
+            <option value="multiply" selected>Multiply (Sombra)</option>
+            <option value="overlay">Overlay (Luz)</option>
+            <option value="soft-light">Soft Light (Suave)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:#cbd5e1; display:block; margin-bottom:4px;">Opacidad: <span id="opacityVal">85%</span></label>
+          <input type="range" id="opacityRange" min="30" max="100" value="85">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const wallMain = document.getElementById('wall-main-color');
+    const mainPicker = document.getElementById('mainPicker');
+    const mainHex = document.getElementById('mainHex');
+    const mainSwatches = document.querySelectorAll('#mainSwatches .swatch');
+
+    const wallAccent = document.getElementById('wall-accent-color');
+    const accentPicker = document.getElementById('accentPicker');
+    const accentHex = document.getElementById('accentHex');
+    const accentSwatches = document.querySelectorAll('#accentSwatches .swatch');
+
+    const blendSelect = document.getElementById('blendSelect');
+    const opacityRange = document.getElementById('opacityRange');
+    const opacityVal = document.getElementById('opacityVal');
+
+    mainPicker.addEventListener('input', (e) => {
+      const color = e.target.value;
+      wallMain.setAttribute('fill', color);
+      mainHex.textContent = color.toUpperCase();
+      mainSwatches.forEach(s => s.classList.remove('active'));
+    });
+
+    mainSwatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        mainSwatches.forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        const color = swatch.getAttribute('data-color');
+        wallMain.setAttribute('fill', color);
+        mainPicker.value = color;
+        mainHex.textContent = color.toUpperCase();
+      });
+    });
+
+    accentPicker.addEventListener('input', (e) => {
+      const color = e.target.value;
+      wallAccent.setAttribute('fill', color);
+      accentHex.textContent = color.toUpperCase();
+      accentSwatches.forEach(s => s.classList.remove('active'));
+    });
+
+    accentSwatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        accentSwatches.forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        const color = swatch.getAttribute('data-color');
+        wallAccent.setAttribute('fill', color);
+        accentPicker.value = color;
+        accentHex.textContent = color.toUpperCase();
+      });
+    });
+
+    blendSelect.addEventListener('change', (e) => {
+      const mode = e.target.value;
+      wallMain.style.mixBlendMode = mode;
+      wallAccent.style.mixBlendMode = mode;
+    });
+
+    opacityRange.addEventListener('input', (e) => {
+      const val = e.target.value;
+      opacityVal.textContent = val + '%';
+      const opacity = val / 100;
+      wallMain.style.opacity = opacity;
+      wallAccent.style.opacity = opacity;
+    });
+  </script>
+</body>
+</html>
