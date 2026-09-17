@@ -59,9 +59,10 @@
   <div class="form-group">
     <label>Línea / Calidad de Pintura:</label>
     <select id="lineaPintura">
-      <option value="estandar" selected>Meridian Estándar (133-152 m²/cubeta a 2 manos)</option>
-      <option value="premier">Meridian Premier (152-171 m²/cubeta a 2 manos)</option>
-      <option value="porosa">Superficie Porosa / Sin Pintar (100-120 m²/cubeta a 2 manos)</option>
+      <option value="clasica" selected>Clásica 3 Años (114 - 133 m²/cubeta a 2 manos)</option>
+      <option value="plus">Meridian Plus (133 - 152 m²/cubeta a 2 manos)</option>
+      <option value="premier">Meridian Premier (152 - 171 m²/cubeta a 2 manos)</option>
+      <option value="porosa">Superficie Porosa / Sin Pintar (100 - 120 m²/cubeta a 2 manos)</option>
     </select>
   </div>
 
@@ -115,17 +116,16 @@ function calcular() {
   const linea = document.getElementById('lineaPintura').value;
   const manos = parseInt(document.getElementById('manos').value);
 
-  // Rendimiento base en m²/L a 2 MANOS (según etiqueta)
-  let rend2Manos = 7.5; // Estándar (~142.5 m² / 19L)
-  if (linea === 'premier') rend2Manos = 8.5; // Premier (~161.5 m² / 19L)
-  if (linea === 'porosa') rend2Manos = 5.8; // Porosa (~110 m² / 19L)
+  // Rendimiento real m²/L a 2 MANOS
+  let rend2Manos = 6.5; // Clásica 3 Años (~123.5 m² / 19L)
+  if (linea === 'plus') rend2Manos = 7.5; // Meridian Plus (~142.5 m² / 19L)
+  if (linea === 'premier') rend2Manos = 8.5; // Meridian Premier (~161.5 m² / 19L)
+  if (linea === 'porosa') rend2Manos = 5.5; // Superficie porosa
 
-  // Ajuste según número de manos seleccionadas
   const factorManos = manos / 2;
   const litrosTotales = (area / rend2Manos) * factorManos;
   const litrosRedondeados = Math.ceil(litrosTotales * 10) / 10;
 
-  // Desglose de compra óptimo
   let rest = Math.ceil(litrosTotales);
   const cubetas = Math.floor(rest / 19);
   rest %= 19;
