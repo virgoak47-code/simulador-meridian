@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Material Meridian</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --green: #22c55e;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
+    .container { width: 100%; max-width: 480px; background: var(--card); padding: 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid var(--border); }
+    h1 { font-size: 1.4rem; text-align: center; margin-bottom: 4px; color: #fff; }
+    p.sub { font-size: 0.85rem; text-align: center; color: var(--muted); margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    .row { display: flex; gap: 10px; }
+    input, select { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: #fff; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus { border-color: var(--accent); }
+    button { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+    button:hover { background: var(--accent-hover); }
+    .results { margin-top: 24px; padding: 18px; background: #0f172a; border-radius: 12px; border: 1px solid var(--border); display: none; }
+    .results.active { display: block; }
+    .res-header { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .res-main { font-size: 2rem; font-weight: 800; color: var(--green); margin-bottom: 12px; }
+    .breakdown { list-style: none; border-top: 1px solid var(--border); padding-top: 12px; font-size: 0.9rem; line-height: 1.6; }
+    .breakdown li { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .sugerencia-box { margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.9rem; line-height: 1.5; }
+    .cross-sell { margin-top: 14px; padding: 12px; background: rgba(37, 99, 235, 0.15); border-left: 4px solid var(--accent); border-radius: 6px; font-size: 0.85rem; line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Calculadora de Material</h1>
+  <p class="sub">Rendimiento exacto Meridian para pintura y sellador</p>
+
+  <div class="form-group">
+    <label>Por Dimensiones de Pared:</label>
+    <div class="row">
+      <input type="number" id="base" placeholder="Ancho (m)" step="0.1" inputmode="decimal">
+      <input type="number" id="altura" placeholder="Alto (m)" step="0.1" inputmode="decimal">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>O Área Total Directa (m²):</label>
+    <input type="number" id="areaDirecta" placeholder="Ej. 45" step="0.1" inputmode="decimal">
+  </div>
+
+  <div class="form-group">
+    <label>Tipo de Muro / Estado:</label>
+    <select id="tipoSuperficie">
+      <option value="liso">Lisa / Repintado en buen estado (8-10 m²/L)</option>
+      <option value="poroso">Porosa / Rugosa / Sin pintar (5-7 m²/L)</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Número de manos:</label>
+    <select id="manos">
+      <option value="2" selected>2 Manos (Recomendado estándar)</option>
+      <option value="1">1 Mano (Retoque ligero)</option>
+      <option value="3">3 Manos (Cambio drástico de tono)</option>
+    </select>
+  </div>
+
+  <button onclick="calcular()">Calcular Cubetaje</button>
+
+  <div class="results" id="resBox">
+    <div class="res-header">Cálculo Estimado</div>
+    <div class="res-main" id="totalLitros">0 Litros</div>
+    
+    <ul class="breakdown">
+      <li><span>Superficie a cubrir:</span> <strong id="resArea">0 m²</strong></li>
+    </ul>
+
+    <div class="sugerencia-box">
+      <strong style="color:var(--accent);">Sugerencia de compra:</strong>
+      <div id="resPresentacion" style="margin-top:6px;"></div>
+    </div>
+
+    <div class="cross-sell">
+      💡 <strong>Venta Cruzada Recomendada:</strong><br>
+      Aplica 1 mano de Sellador Meridian antes de pintar.<br>
+      Necesitas aprox. <strong id="litrosSellador">0 L</strong> para asegurar adherencia y rendimiento.
+    </div>
+  </div>
+</div>
+
+<script>
+function calcular() {
+  const base = parseFloat(document.getElementById('base').value) || 0;
+  const altura = parseFloat(document.getElementById('altura').value) || 0;
+  let area = parseFloat(document.getElementById('areaDirecta').value) || 0;
+
+  if (area === 0 && base > 0 && altura > 0) {
+    area = base * altura;
+  }
+
+  if (area <= 0) {
+    alert("Ingresa dimensiones válidas o el área en m².");
+    return;
+  }
+
+  const tipo = document.getElementById('tipoSuperficie').value;
+  const manos = parseInt(document.getElementById('manos').value);
+
+  const rendimientoBase = (tipo === 'liso') ? 9 : 6;
+  const litrosTotales = (area * manos) / rendimientoBase;
+  const litrosRedondeados = Math.ceil(litrosTotales * 10) / 10;
+
+  let rest = Math.ceil(litrosTotales);
+  const cubetas = Math.floor(rest / 19);
+  rest %= 19;
+  const galones = Math.floor(rest / 4);
+  rest %= 4;
+  const botes = rest;
+
+  let presentacionTexto = [];
+  if (cubetas > 0) presentacionTexto.push(`• <strong>${cubetas}</strong> Cubeta(s) de 19L`);
+  if (galones > 0) presentacionTexto.push(`• <strong>${galones}</strong> Galón(es) de 4L`);
+  if (botes > 0) presentacionTexto.push(`• <strong>${botes}</strong> Bote(s) de 1L`);
+
+  const litrosSelladorReq = Math.ceil(area / 9);
+
+  document.getElementById('resArea').innerText = `${area.toFixed(1)} m²`;
+  document.getElementById('totalLitros').innerText = `${litrosRedondeados} Litros`;
+  document.getElementById('resPresentacion').innerHTML = presentacionTexto.join("<br>") || "• 1 Bote de 1L";
+  document.getElementById('litrosSellador').innerText = `${litrosSelladorReq} L`;
+
+  document.getElementById('resBox').classList.add('active');
+}
+</script>
+
+</body>
+</html>
