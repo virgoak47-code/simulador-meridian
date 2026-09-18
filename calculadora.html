@@ -102,11 +102,9 @@
 function calcular() {
   const base = parseFloat(document.getElementById('base').value) || 0;
   const altura = parseFloat(document.getElementById('altura').value) || 0;
-  let area = parseFloat(document.getElementById('areaDirecta').value) || 0;
+  const areaDirecta = parseFloat(document.getElementById('areaDirecta').value) || 0;
 
-  if (area === 0 && base > 0 && altura > 0) {
-    area = base * altura;
-  }
+  let area = areaDirecta > 0 ? areaDirecta : (base * altura);
 
   if (area <= 0) {
     alert("Ingresa dimensiones válidas o el área en m².");
@@ -116,41 +114,49 @@ function calcular() {
   const linea = document.getElementById('lineaPintura').value;
   const manos = parseInt(document.getElementById('manos').value);
 
-  // Rendimiento real m²/L a 2 MANOS
-  let rend2Manos = 6.5; // Clásica 3 Años (~123.5 m² / 19L)
-  if (linea === 'plus') rend2Manos = 7.5; // Meridian Plus (~142.5 m² / 19L)
-  if (linea === 'premier') rend2Manos = 8.5; // Meridian Premier (~161.5 m² / 19L)
-  if (linea === 'porosa') rend2Manos = 5.5; // Superficie porosa
+  let rend2Manos = 6.5; 
+  if (linea === 'plus') rend2Manos = 7.5; 
+  if (linea === 'premier') rend2Manos = 8.5; 
+  if (linea === 'porosa') rend2Manos = 5.5; 
 
   const factorManos = manos / 2;
   const litrosTotales = (area / rend2Manos) * factorManos;
   const litrosRedondeados = Math.ceil(litrosTotales * 10) / 10;
 
   let rest = Math.ceil(litrosTotales);
-  const cubetas = Math.floor(rest / 19);
-  rest %= 19;
-  const galones = Math.floor(rest / 4);
-  rest %= 4;
-  const botes = rest;
+  let cubetas = 0;
+  let galones = 0;
+  let botes = 0;
+
+  if (rest >= 15) {
+    cubetas = Math.ceil(rest / 19);
+  } else {
+    galones = Math.floor(rest / 4);
+    rest %= 4;
+    
+    if (rest === 3) {
+      galones += 1;
+    } else {
+      botes = rest;
+    }
+  }
 
   let presentacionTexto = [];
   if (cubetas > 0) presentacionTexto.push(`• <strong>${cubetas}</strong> Cubeta(s) de 19L`);
   if (galones > 0) presentacionTexto.push(`• <strong>${galones}</strong> Galón(es) de 4L`);
   if (botes > 0) presentacionTexto.push(`• <strong>${botes}</strong> Bote(s) de 1L`);
 
-  // Sellador Meridian (1 L = 30 m² diluido)
   const litrosSelladorReq = Math.ceil(area / 30);
   let presSelladorTexto = "";
 
-  if (litrosSelladorReq >= 19) {
-    const cubSell = Math.floor(litrosSelladorReq / 19);
-    const remSell = litrosSelladorReq % 19;
-    presSelladorTexto = `(${cubSell} Cubeta 19L${remSell > 0 ? ' + complemento' : ''})`;
-  } else if (litrosSelladorReq >= 4) {
+  if (litrosSelladorReq >= 15) {
+    const cubSell = Math.ceil(litrosSelladorReq / 19);
+    presSelladorTexto = `(${cubSell} Cubeta(s) de 19L)`;
+  } else if (litrosSelladorReq >= 3) {
     const galSell = Math.ceil(litrosSelladorReq / 4);
-    presSelladorTexto = `(${galSell} Galón de 4L)`;
+    presSelladorTexto = `(${galSell} Galón(es) de 4L)`;
   } else {
-    presSelladorTexto = `(${litrosSelladorReq} Bote de 1L)`;
+    presSelladorTexto = `(${litrosSelladorReq} Bote(s) de 1L)`;
   }
 
   document.getElementById('resArea').innerText = `${area.toFixed(1)} m²`;
